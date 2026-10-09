@@ -430,7 +430,12 @@ def server_error(e):
     return render_template("500.html"), 500
 
 
+# Ensure schema exists at import time too (e.g. when served by gunicorn,
+# where the __main__ block below never runs). CREATE TABLE IF NOT EXISTS
+# makes this safe with multiple workers.
+with app.app_context():
+    init_db()
+
+
 if __name__ == "__main__":
-    with app.app_context():
-        init_db()
     app.run(host="0.0.0.0", port=PORT)
