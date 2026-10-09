@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block title %}Poll created{% endblock %}
+{% block content %}
+<div class="card">
+  <h1 style="margin-top:0">🎉 Your poll is live!</h1>
+  <p class="poll-meta">{{ poll['question'] }}</p>
+
+  <h2 class="section-title">Share this link to collect votes</h2>
+  <div class="link-box">
+    <input type="text" id="share-link" readonly value="{{ share_url }}" data-testid="share-link">
+    <button class="btn small" data-testid="copy-share" onclick="copyLink('share-link', this)">Copy</button>
+  </div>
+
+  <h2 class="section-title">Manage link <span class="hint">(keep this secret — it's your admin key)</span></h2>
+  <div class="link-box">
+    <input type="text" id="manage-link" readonly value="{{ manage_url }}" data-testid="manage-link">
+    <button class="btn small" data-testid="copy-manage" onclick="copyLink('manage-link', this)">Copy</button>
+  </div>
+
+  <p class="hint" style="color:var(--muted)">Bookmark the manage link to close the poll, edit options, or delete it later.</p>
+
+  <div class="actions">
+    <a class="btn" href="{{ url_for('vote_page', code=poll['code']) }}" data-testid="view-poll">View poll</a>
+    <a class="btn secondary" href="{{ url_for('manage', token=poll['admin_token']) }}">Manage poll</a>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+function copyLink(id, btn) {
+  const el = document.getElementById(id);
+  el.select(); el.setSelectionRange(0, 99999);
+  navigator.clipboard.writeText(el.value).then(() => {
+    const old = btn.textContent; btn.textContent = 'Copied!';
+    setTimeout(() => btn.textContent = old, 1500);
+  }).catch(() => document.execCommand('copy'));
+}
+</script>
+{% endblock %}

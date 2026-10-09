@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block title %}Something went wrong{% endblock %}
+{% block content %}
+<div class="card">
+  <div class="empty">
+    <span class="big">⚠️</span>
+    <h1>Something went wrong</h1>
+    <p>An unexpected error occurred. Please try again in a moment.</p>
+    <a class="btn" href="{{ url_for('home') }}">Back to home</a>
+  </div>
+</div>
+{% endblock %}

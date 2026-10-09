@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+{% block title %}Manage poll{% endblock %}
+{% block content %}
+<div class="card" data-testid="manage-panel">
+  <h1 style="margin-top:0">Manage poll</h1>
+  <p class="poll-question">{{ poll['question'] }}</p>
+  <p class="poll-meta">Status: {% if closed %}🔒 Closed{% else %}🟢 Open{% endif %} · {{ vote_total }} ballot{{ 's' if vote_total != 1 else '' }}</p>
+
+  <h2 class="section-title">Share link</h2>
+  <div class="link-box">
+    <input type="text" id="share-link" readonly value="{{ share_url }}" data-testid="share-link">
+    <button class="btn small" data-testid="copy-share" onclick="copyLink('share-link', this)">Copy</button>
+  </div>
+
+  <h2 class="section-title mt">Results</h2>
+  {% for r in results['options'] %}
+  <div class="result-row" data-testid="result-row" data-option-id="{{ r['id'] }}">
+    <div class="label">
+      <span>{{ r['text'] }}</span>
+      <span class="pct">{{ r['percent'] }}%</span>
+    </div>
+    <div class="bar"><div class="fill" style="width: {{ r['percent'] }}%">
+      <span class="count">{{ r['votes'] }}</span>
+    </div></div>
+  </div>
+  {% endfor %}
+  <p class="total-line">{{ results['total_votes'] }} total votes</p>
+
+  {% if vote_total == 0 %}
+  <h2 class="section-title mt">Edit poll <span class="hint">(available until the first vote)</span></h2>
+  <form method="post" action="{{ url_for('manage_edit', token=poll['admin_token']) }}" data-testid="edit-form">
+    <div class="field">
+      <label for="q">Question</label>
+      <input type="text" id="q" name="question" maxlength="300" value="{{ poll['question'] }}" data-testid="edit-question">
+    </div>
+    <div class="field">
+      <label>Options</label>
+      {% for o in options %}
+      <div class="opt-row" style="margin-bottom:8px">
+        <input type="text" name="options" maxlength="200" value="{{ o['text'] }}" data-testid="edit-option-{{ loop.index0 }}">
+      </div>
+      {% endfor %}
+    </div>
+    <button type="submit" class="btn secondary small" data-testid="save-edit">Save changes</button>
+  </form>
+  {% endif %}
+
+  <h2 class="section-title mt">Actions</h2>
+  <div class="actions">
+    {% if closed %}
+    <form class="inline-form" method="post" action="{{ url_for('manage_reopen', token=poll['admin_token']) }}">
+      <button type="submit" class="btn" data-testid="reopen-poll">Reopen poll</button>
+    </form>
+    {% else %}
+    <form class="inline-form" method="post" action="{{ url_for('manage_close', token=poll['admin_token']) }}">
+      <button type="submit" class="btn secondary" data-testid="close-poll">Close poll</button>
+    </form>
+    {% endif %}
+    <form class="inline-form" method="post" action="{{ url_for('manage_delete', token=poll['admin_token']) }}"
+          onsubmit="return confirm('Delete this poll and all its votes? This cannot be undone.');">
+      <button type="submit" class="btn danger" data-testid="delete-poll">Delete poll</button>
+    </form>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+function copyLink(id, btn) {
+  const el = document.getElementById(id);
+  el.select(); el.setSelectionRange(0, 99999);
+  navigator.clipboard.writeText(el.value).then(() => {
+    const old = btn.textContent; btn.textContent = 'Copied!';
+    setTimeout(() => btn.textContent = old, 1500);
+  }).catch(() => document.execCommand('copy'));
+}
+</script>
+{% endblock %}

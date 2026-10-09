@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}QuickPoll{% endblock %} · QuickPoll</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <meta name="description" content="QuickPoll — create a poll, share a link, watch live results.">
+</head>
+<body>
+  <header class="site-header">
+    <div class="wrap">
+      <a class="logo" href="{{ url_for('home') }}" data-testid="logo">Quick<span>Poll</span></a>
+      <nav class="nav">
+        <a href="{{ url_for('new_poll') }}" data-testid="nav-create">Create a poll</a>
+      </nav>
+    </div>
+  </header>
+  <main>
+    <div class="wrap">
+      {% block content %}{% endblock %}
+    </div>
+  </main>
+  <footer class="site-footer">
+    <div class="wrap">QuickPoll — polls in seconds. No account needed.</div>
+  </footer>
+  {% block scripts %}{% endblock %}
+</body>
+</html>

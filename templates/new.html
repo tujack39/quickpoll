@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+{% block title %}Create a poll{% endblock %}
+{% block content %}
+<div class="card">
+  <h1 style="margin-top:0">Create a poll</h1>
+
+  {% if errors %}
+  <div class="errors" data-testid="form-errors">
+    <ul>{% for e in errors %}<li>{{ e }}</li>{% endfor %}</ul>
+  </div>
+  {% endif %}
+
+  <form method="post" action="{{ url_for('new_poll') }}" data-testid="create-form">
+    <div class="field">
+      <label for="question">Question</label>
+      <input type="text" id="question" name="question" maxlength="300" required
+             placeholder="What's for lunch?" value="{{ question or '' }}"
+             data-testid="question-input">
+    </div>
+
+    <div class="field">
+      <label>Options <span class="hint">(2–8)</span></label>
+      <div id="options" data-testid="options-list">
+        {% set opts = options if options is defined and options else ['', ''] %}
+        {% for o in opts %}
+        <div class="opt-row">
+          <input type="text" name="options" maxlength="200" required
+                 placeholder="Option {{ loop.index }}"
+                 value="{{ o }}" data-testid="option-input-{{ loop.index0 }}">
+          <button type="button" class="icon-btn" aria-label="Remove option"
+                  data-testid="remove-option" onclick="removeOption(this)">✕</button>
+        </div>
+        {% endfor %}
+      </div>
+      <button type="button" class="btn secondary small" id="add-option"
+              data-testid="add-option" onclick="addOption()">+ Add option</button>
+    </div>
+
+    <div class="check">
+      <input type="checkbox" id="allow_multiple" name="allow_multiple" data-testid="allow-multiple">
+      <label for="allow_multiple">Allow multiple selections
+        <span class="hint">Voters can pick more than one option.</span></label>
+    </div>
+
+    <div class="check">
+      <input type="checkbox" id="show_results" name="show_results" checked data-testid="show-results">
+      <label for="show_results">Show live results to voters
+        <span class="hint">If off, results stay hidden until the poll closes.</span></label>
+    </div>
+
+    <div class="check">
+      <input type="checkbox" id="require_name" name="require_name" data-testid="require-name">
+      <label for="require_name">Ask voters for their name
+        <span class="hint">An optional name field appears on the vote page.</span></label>
+    </div>
+
+    <div class="field">
+      <label for="closes_at">Close automatically <span class="hint">(optional)</span></label>
+      <input type="datetime-local" id="closes_at" name="closes_at" data-testid="closes-at">
+    </div>
+
+    <button type="submit" class="btn block" data-testid="submit-poll">Create poll</button>
+  </form>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+const MAX_OPTIONS = 8, MIN_OPTIONS = 2;
+function addOption() {
+  const list = document.getElementById('options');
+  const count = list.querySelectorAll('.opt-row').length;
+  if (count >= MAX_OPTIONS) return;
+  const row = document.createElement('div');
+  row.className = 'opt-row';
+  row.innerHTML =
+    '<input type="text" name="options" maxlength="200" required placeholder="Option ' + (count + 1) + '"' +
+    ' data-testid="option-input-' + count + '">' +
+    '<button type="button" class="icon-btn" aria-label="Remove option" data-testid="remove-option" onclick="removeOption(this)">✕</button>';
+  list.appendChild(row);
+  row.querySelector('input').focus();
+}
+function removeOption(btn) {
+  const list = document.getElementById('options');
+  if (list.querySelectorAll('.opt-row').length <= MIN_OPTIONS) return;
+  btn.closest('.opt-row').remove();
+  // renumber testids so they stay stable
+  list.querySelectorAll('.opt-row input').forEach((inp, i) => {
+    inp.setAttribute('data-testid', 'option-input-' + i);
+    inp.placeholder = 'Option ' + (i + 1);
+  });
+}
+</script>
+{% endblock %}

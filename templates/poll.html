@@ -1,0 +1,138 @@
+{% extends "base.html" %}
+{% block title %}{{ poll['question'] }}{% endblock %}
+{% block content %}
+<div class="card">
+  <h1 class="poll-question" data-testid="poll-question">{{ poll['question'] }}</h1>
+  <p class="poll-meta" data-testid="poll-meta">
+    {% if poll['allow_multiple'] %}Pick all that apply · {% else %}Pick one · {% endif %}
+    <span data-testid="total-votes">{{ total }}</span> vote{{ 's' if total != 1 else '' }}
+    {% if poll['closes_at'] %} · closes {{ poll['closes_at'][:16].replace('T', ' ') }} UTC{% endif %}
+  </p>
+
+  {% if closed %}
+  <div class="closed-banner" data-testid="closed-banner">🔒 This poll is closed — voting has ended.</div>
+  {% endif %}
+
+  <div class="vote-error" data-testid="vote-error" role="alert"></div>
+  <div class="thanks" data-testid="vote-thanks">✅ Thanks! Your vote was counted.</div>
+
+  {% if not closed %}
+  <form id="vote-form" data-testid="vote-form">
+    {% if poll['require_name'] %}
+    <div class="field">
+      <label for="voter_name">Your name <span class="hint">(optional)</span></label>
+      <input type="text" id="voter_name" name="voter_name" maxlength="80"
+             placeholder="Jane" data-testid="voter-name">
+    </div>
+    {% endif %}
+    <div role="group" aria-label="Poll options" data-testid="options-group">
+      {% for o in options %}
+      <label class="option-card" data-testid="option-card" data-option-id="{{ o['id'] }}">
+        <input type="{{ 'checkbox' if poll['allow_multiple'] else 'radio' }}"
+               name="options" value="{{ o['id'] }}" data-testid="option-input-{{ o['id'] }}">
+        <span>{{ o['text'] }}</span>
+      </label>
+      {% endfor %}
+    </div>
+    <button type="submit" class="btn block" data-testid="vote-button">Vote</button>
+  </form>
+  {% endif %}
+</div>
+
+<div class="card" id="results-card" data-testid="results-section"
+     data-show-results="{{ 1 if poll['show_results'] else 0 }}">
+  <div class="results-head">
+    <h2><span class="live-dot"></span>Live results</h2>
+    <span class="total-line"><span data-testid="results-total">{{ total }}</span> votes</span>
+  </div>
+  <div id="results-body" data-testid="results-body">
+    {% if results %}
+      {% for r in results['options'] %}
+      <div class="result-row" data-testid="result-row" data-option-id="{{ r['id'] }}">
+        <div class="label">
+          <span data-testid="result-label">{{ r['text'] }}</span>
+          <span class="pct" data-testid="result-bar" data-percent="{{ r['percent'] }}">{{ r['percent'] }}%</span>
+        </div>
+        <div class="bar"><div class="fill" style="width: {{ r['percent'] }}%">
+          <span class="count">{{ r['votes'] }}</span>
+        </div></div>
+      </div>
+      {% endfor %}
+    {% else %}
+      <div class="empty"><p data-testid="results-hidden">Results are hidden until this poll closes.</p></div>
+    {% endif %}
+  </div>
+  <p class="total-line" id="refresh-note">Auto-refreshes every 5 seconds.</p>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+const CODE = {{ poll['code'] | tojson }};
+const RESULTS_URL = '/api/p/' + CODE + '/results';
+
+document.querySelectorAll('.option-card input').forEach(inp => {
+  inp.addEventListener('change', () => {
+    inp.closest('.option-card').classList.toggle('selected', inp.checked);
+    if (inp.type === 'radio') {
+      document.querySelectorAll('.option-card').forEach(c => {
+        if (c !== inp.closest('.option-card')) c.classList.remove('selected');
+      });
+    }
+  });
+});
+
+const form = document.getElementById('vote-form');
+if (form) {
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const err = document.querySelector('[data-testid="vote-error"]');
+    const thanks = document.querySelector('[data-testid="vote-thanks"]');
+    err.classList.remove('show'); thanks.classList.remove('show');
+    const res = await fetch('/p/' + CODE + '/vote', {
+      method: 'POST', body: new FormData(form),
+    });
+    const data = await res.json();
+    if (data.ok) {
+      thanks.classList.add('show');
+      form.querySelector('[data-testid="vote-button"]').disabled = true;
+      renderResults(data.results);
+    } else {
+      err.textContent = data.error || 'Something went wrong. Please try again.';
+      err.classList.add('show');
+    }
+  });
+}
+
+function barHTML(r) {
+  return '<div class="result-row" data-testid="result-row" data-option-id="' + r.id + '">' +
+    '<div class="label"><span data-testid="result-label"></span>' +
+    '<span class="pct" data-testid="result-bar" data-percent="' + r.percent + '">' + r.percent + '%</span></div>' +
+    '<div class="bar"><div class="fill" style="width:' + r.percent + '%">' +
+    '<span class="count">' + r.votes + '</span></div></div></div>';
+}
+
+function renderResults(payload) {
+  const body = document.getElementById('results-body');
+  if (payload.hidden) {
+    body.innerHTML = '<div class="empty"><p data-testid="results-hidden">Results are hidden until this poll closes.</p></div>';
+    return;
+  }
+  body.innerHTML = payload.options.map(barHTML).join('');
+  // set labels via textContent to avoid HTML injection
+  body.querySelectorAll('.result-row').forEach((row, i) => {
+    row.querySelector('[data-testid="result-label"]').textContent = payload.options[i].text;
+  });
+  document.querySelector('[data-testid="results-total"]').textContent = payload.total_votes;
+  document.querySelector('[data-testid="total-votes"]').textContent = payload.total_votes;
+}
+
+async function refresh() {
+  try {
+    const res = await fetch(RESULTS_URL, { cache: 'no-store' });
+    const data = await res.json();
+    if (data.ok) renderResults(data);
+  } catch (e) { /* keep old results on transient failure */ }
+}
+setInterval(refresh, 5000);
+</script>
+{% endblock %}

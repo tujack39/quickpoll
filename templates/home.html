@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}Home{% endblock %}
+{% block content %}
+<section class="hero">
+  <h1>Polls in <span>seconds</span>.</h1>
+  <p>Ask a question, share a link, watch the votes roll in live. No account, no fuss.</p>
+  <a class="btn" href="{{ url_for('new_poll') }}" data-testid="hero-cta">Create a poll</a>
+</section>
+
+<div class="how">
+  <div class="step"><span class="num">1</span><p>Create your poll with up to 8 options.</p></div>
+  <div class="step"><span class="num">2</span><p>Share the link anywhere — chat, email, social.</p></div>
+  <div class="step"><span class="num">3</span><p>Watch live results update as votes come in.</p></div>
+</div>
+
+<section class="card" data-testid="recent-polls">
+  <h2 class="section-title">Recent public polls</h2>
+  {% if recent %}
+  <ul class="poll-list">
+    {% for p in recent %}
+    <li>
+      <a href="{{ url_for('vote_page', code=p['code']) }}">{{ p['question'] }}</a>
+      <div class="meta">{{ p['votes'] }} vote{{ 's' if p['votes'] != 1 else '' }} · created {{ p['created_at'][:10] }}</div>
+    </li>
+    {% endfor %}
+  </ul>
+  {% else %}
+  <div class="empty">
+    <span class="big">🗳️</span>
+    <p>No public polls yet — be the first!</p>
+    <a class="btn small" href="{{ url_for('new_poll') }}">Create one</a>
+  </div>
+  {% endif %}
+</section>
+{% endblock %}
