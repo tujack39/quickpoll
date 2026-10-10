@@ -18,3 +18,5 @@ jobs:
         with:
           api-key: ${{ secrets.TESTSPRITE_API_KEY }}
           project: "05ffab45-d2e7-4f74-a1a6-a90462468fcc"
+          # 11 browser tests take ~15 min; the default 600s wait times out
+          timeout: 1800
