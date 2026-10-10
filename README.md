@@ -7,6 +7,17 @@ Create a poll, share a link, watch live results roll in. No account needed.
 Built for the [TestSprite Hackathon Season 4](https://www.testsprite.com/hackathon-s4):
 every pull request to this repo is automatically tested by TestSprite.
 
+## What the TestSprite suite covers
+
+`.github/workflows/testsprite.yml` runs the "QuickPoll app test suite overview"
+(9 end-to-end tests, all passing) against the live app on every PR and every
+push to `main`:
+
+- Creating polls — with live results, voter-name option, multiple choice
+- Voting — single-choice and multiple-choice ballots
+- Live results — visible results, auto-refresh after new votes
+- Poll management — close, reopen, and delete via the manage link
+
 ## Run it
 
 ```bash
