@@ -1,0 +1,20 @@
+name: TestSprite
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+
+    # Fork PRs run without repository secrets, so the API key would be empty and
+    # the check permanently red. Skip forks (a maintainer's push still runs it).
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
+
+    steps:
+      - uses: TestSprite/testsprite-action@v1
+        with:
+          api-key: ${{ secrets.TESTSPRITE_API_KEY }}
+          project: "05ffab45-d2e7-4f74-a1a6-a90462468fcc"
