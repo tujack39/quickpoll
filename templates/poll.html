@@ -51,7 +51,7 @@
       <div class="result-row" data-testid="result-row" data-option-id="{{ r['id'] }}">
         <div class="label">
           <span data-testid="result-label">{{ r['text'] }}</span>
-          <span class="pct" data-testid="result-bar" data-percent="{{ r['percent'] }}">{{ r['percent'] }}%</span>
+          <span class="pct"><span data-testid="result-bar" data-percent="{{ r['percent'] }}">{{ r['percent'] }}%</span> · <span data-testid="result-votes">{{ r['votes'] }} vote{{ 's' if r['votes'] != 1 }}</span></span>
         </div>
         <div class="bar"><div class="fill" style="width: {{ r['percent'] }}%">
           <span class="count">{{ r['votes'] }}</span>
@@ -106,7 +106,8 @@ if (form) {
 function barHTML(r) {
   return '<div class="result-row" data-testid="result-row" data-option-id="' + r.id + '">' +
     '<div class="label"><span data-testid="result-label"></span>' +
-    '<span class="pct" data-testid="result-bar" data-percent="' + r.percent + '">' + r.percent + '%</span></div>' +
+    '<span class="pct"><span data-testid="result-bar" data-percent="' + r.percent + '">' + r.percent + '%</span> · ' +
+    '<span data-testid="result-votes">' + r.votes + ' vote' + (r.votes === 1 ? '' : 's') + '</span></span></div>' +
     '<div class="bar"><div class="fill" style="width:' + r.percent + '%">' +
     '<span class="count">' + r.votes + '</span></div></div></div>';
 }
