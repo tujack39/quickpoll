@@ -2,6 +2,11 @@
 
 Create a poll, share a link, watch live results roll in. No account needed.
 
+**Live demo:** https://quickpoll.myeventwatch.com
+
+Built for the [TestSprite Hackathon Season 4](https://www.testsprite.com/hackathon-s4):
+every pull request to this repo is automatically tested by TestSprite.
+
 ## Run it
 
 ```bash
